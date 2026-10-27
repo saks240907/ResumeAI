@@ -12,347 +12,375 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+# --------------------------------------------------
+# THEME SETTINGS
+# --------------------------------------------------
 
+if "resumeai_theme" not in st.session_state:
+    st.session_state["resumeai_theme"] = "Light"
+
+def change_theme():
+    st.session_state["resumeai_theme"] = st.session_state["theme_selector"]
+
+current_theme = st.session_state["resumeai_theme"]
 # --------------------------------------------------
 # PATHS AND MODEL
 # --------------------------------------------------
 
 PROJECT_DIR = Path(__file__).resolve().parent
 MODEL_PATH = PROJECT_DIR / "models" / "resume_classifier.joblib"
-
 # --------------------------------------------------
-# CUSTOM CSS
+# CUSTOM CSS — LIGHT AND DARK THEMES
 # --------------------------------------------------
 
-st.markdown("""
+theme = st.session_state["resumeai_theme"]
+
+if theme == "Dark":
+    colors = {
+        "bg": "#0b1120",
+        "sidebar": "#111827",
+        "surface": "#151f32",
+        "surface_alt": "#1e293b",
+        "text": "#f1f5f9",
+        "muted": "#a5b4c7",
+        "border": "#334155",
+        "input": "#111827",
+        "accent": "#818cf8",
+        "accent_hover": "#6366f1",
+        "badge_bg": "#312e81",
+        "badge_text": "#c7d2fe",
+    }
+else:
+    colors = {
+        "bg": "#f6f8fc",
+        "sidebar": "#ffffff",
+        "surface": "#ffffff",
+        "surface_alt": "#f8fafc",
+        "text": "#182230",
+        "muted": "#667085",
+        "border": "#e4e7ec",
+        "input": "#ffffff",
+        "accent": "#4f46e5",
+        "accent_hover": "#3730a3",
+        "badge_bg": "#eef2ff",
+        "badge_text": "#4338ca",
+    }
+
+st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* ==============================
-   GLOBAL THEME
-============================== */
+:root {{
+    --rai-bg: {colors["bg"]};
+    --rai-sidebar: {colors["sidebar"]};
+    --rai-surface: {colors["surface"]};
+    --rai-surface-alt: {colors["surface_alt"]};
+    --rai-text: {colors["text"]};
+    --rai-muted: {colors["muted"]};
+    --rai-border: {colors["border"]};
+    --rai-input: {colors["input"]};
+    --rai-accent: {colors["accent"]};
+    --rai-accent-hover: {colors["accent_hover"]};
+    --rai-badge-bg: {colors["badge_bg"]};
+    --rai-badge-text: {colors["badge_text"]};
+}}
 
-html, body, [class*="css"] {
+html, body, [class*="css"] {{
     font-family: 'Inter', sans-serif;
-}
+}}
 
-.stApp {
-    background: #f6f8fc;
-    color: #182230;
-}
+.stApp,
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"] {{
+    background: var(--rai-bg) !important;
+    color: var(--rai-text) !important;
+}}
 
-[data-testid="stAppViewContainer"] {
-    background: #f6f8fc;
-}
-
-[data-testid="stMain"] {
-    background: #f6f8fc;
-}
-
-.block-container {
+.block-container {{
     padding-top: 2rem;
     padding-bottom: 3rem;
     max-width: 1450px;
-}
+}}
 
-/* ==============================
-   GLOBAL TEXT VISIBILITY
-============================== */
+.stApp h1, .stApp h2, .stApp h3,
+.stApp h4, .stApp h5, .stApp h6 {{
+    color: var(--rai-text) !important;
+}}
 
-.stApp h1,
-.stApp h2,
-.stApp h3,
-.stApp h4,
-.stApp h5,
-.stApp h6 {
-    color: #182230 !important;
-}
+.stApp p, .stApp li, .stApp label,
+.stApp small, .stApp [data-testid="stMarkdownContainer"] {{
+    color: var(--rai-text);
+}}
 
-.stApp p,
-.stApp li,
-.stApp label,
-.stApp small,
-.stApp [data-testid="stMarkdownContainer"] {
-    color: #344054;
-}
+.stApp [data-testid="stCaptionContainer"],
+.stApp .stCaption {{
+    color: var(--rai-muted) !important;
+}}
 
-/* Text input, text area and select boxes */
+/* SIDEBAR */
+
+[data-testid="stSidebar"] {{
+    background: var(--rai-sidebar) !important;
+    border-right: 1px solid var(--rai-border);
+}}
+
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {{
+    color: var(--rai-text) !important;
+}}
+
+/* INPUTS */
+
 .stApp input,
-.stApp textarea {
-    color: #182230 !important;
-    background-color: #ffffff !important;
-    -webkit-text-fill-color: #182230 !important;
-}
+.stApp textarea,
+.stApp [data-baseweb="input"] input,
+.stApp [data-baseweb="textarea"] textarea {{
+    background-color: var(--rai-input) !important;
+    color: var(--rai-text) !important;
+    -webkit-text-fill-color: var(--rai-text) !important;
+    border-color: var(--rai-border) !important;
+}}
 
 .stApp input::placeholder,
-.stApp textarea::placeholder {
-    color: #98a2b3 !important;
-    -webkit-text-fill-color: #98a2b3 !important;
-}
+.stApp textarea::placeholder {{
+    color: var(--rai-muted) !important;
+    -webkit-text-fill-color: var(--rai-muted) !important;
+}}
 
-/* Select boxes */
-.stApp [data-baseweb="select"] > div {
-    background-color: #ffffff;
-    color: #182230;
-}
+.stApp [data-baseweb="select"] > div {{
+    background-color: var(--rai-input) !important;
+    border-color: var(--rai-border) !important;
+    color: var(--rai-text) !important;
+}}
 
-.stApp [data-baseweb="select"] span {
-    color: #182230;
-}
+.stApp [data-baseweb="select"] span {{
+    color: var(--rai-text) !important;
+}}
 
-/* Radio buttons, checkboxes and captions */
-.stApp [data-testid="stRadio"] label,
-.stApp [data-testid="stCheckbox"] label,
-.stApp [data-testid="stCaptionContainer"] {
-    color: #344054 !important;
-}
+[data-baseweb="popover"],
+[data-baseweb="menu"],
+[data-baseweb="listbox"] {{
+    background-color: var(--rai-surface) !important;
+    color: var(--rai-text) !important;
+}}
 
-/* ==============================
-   SIDEBAR
-============================== */
+[data-baseweb="option"] {{
+    background-color: var(--rai-surface) !important;
+    color: var(--rai-text) !important;
+}}
 
-[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #10152f 0%, #202752 100%);
-}
+/* HERO */
 
-[data-testid="stSidebar"] * {
-    color: #ffffff !important;
-}
-
-[data-testid="stSidebar"] input {
-    color: #182230 !important;
-}
-
-/* ==============================
-   HERO BANNER
-============================== */
-
-.hero {
-    background: linear-gradient(
-        120deg,
-        #4338ca 0%,
-        #6366f1 55%,
-        #06b6d4 100%
-    );
+.hero {{
+    background: linear-gradient(120deg, #4338ca 0%, #6366f1 55%, #0891b2 100%);
     padding: 32px;
     border-radius: 22px;
-    color: #ffffff;
+    color: #ffffff !important;
     margin-bottom: 25px;
     box-shadow: 0 12px 35px rgba(79, 70, 229, 0.18);
-}
+}}
 
-.hero h1 {
+.hero h1 {{
     color: #ffffff !important;
     font-size: 34px;
     font-weight: 800;
     margin-bottom: 8px;
-}
+}}
 
-.hero p {
+.hero p {{
     color: #eef2ff !important;
     font-size: 15px;
     margin-bottom: 0;
-}
+}}
 
-.hero .small-badge {
-    background: rgba(255, 255, 255, 0.2);
+.hero .small-badge {{
+    background: rgba(255,255,255,0.2);
     color: #ffffff !important;
-}
+}}
 
-/* ==============================
-   DASHBOARD CARDS
-============================== */
+/* DASHBOARD CARDS */
 
-.metric-card {
-    background: #ffffff;
-    padding: 22px;
+.metric-card, .info-card {{
+    background: var(--rai-surface) !important;
+    border: 1px solid var(--rai-border) !important;
     border-radius: 17px;
-    border: 1px solid #e8ebf4;
-    box-shadow: 0 5px 18px rgba(31, 41, 55, 0.035);
-    min-height: 130px;
-}
+    padding: 22px;
+    box-shadow: 0 5px 18px rgba(0,0,0,0.08);
+}}
 
-.metric-label {
-    color: #667085 !important;
+.metric-card {{
+    min-height: 130px;
+}}
+
+.metric-label, .metric-note {{
+    color: var(--rai-muted) !important;
     font-size: 13px;
     font-weight: 600;
-}
+}}
 
-.metric-value {
-    color: #182230 !important;
+.metric-value {{
+    color: var(--rai-text) !important;
     font-size: 29px;
     font-weight: 800;
     margin-top: 12px;
-}
+}}
 
-.metric-note {
-    color: #667085 !important;
+.metric-note {{
     font-size: 12px;
     margin-top: 5px;
-}
+}}
 
-.section-title {
-    color: #182230 !important;
+.section-title {{
+    color: var(--rai-text) !important;
     font-size: 22px;
     font-weight: 750;
     margin-top: 24px;
     margin-bottom: 14px;
-}
+}}
 
-.info-card {
-    background: #ffffff;
-    border: 1px solid #e8ebf4;
-    border-radius: 16px;
-    padding: 22px;
+.info-card {{
     min-height: 150px;
-}
+}}
 
-.info-card h3 {
-    color: #182230 !important;
+.info-card h3 {{
+    color: var(--rai-text) !important;
     font-size: 17px;
-}
+}}
 
-.info-card p {
-    color: #667085 !important;
+.info-card p {{
+    color: var(--rai-muted) !important;
     font-size: 13px;
     line-height: 1.7;
-}
+}}
 
-.small-badge {
-    background: #eef2ff;
-    color: #4338ca !important;
+.small-badge {{
+    background: var(--rai-badge-bg);
+    color: var(--rai-badge-text) !important;
     display: inline-block;
     border-radius: 20px;
     padding: 5px 11px;
     font-size: 11px;
     font-weight: 700;
-}
+}}
 
-/* ==============================
-   STREAMLIT METRICS
-============================== */
+/* STREAMLIT METRICS */
 
-div[data-testid="stMetric"] {
-    background: #ffffff;
+div[data-testid="stMetric"] {{
+    background: var(--rai-surface) !important;
     padding: 18px;
-    border: 1px solid #e8ebf4;
+    border: 1px solid var(--rai-border) !important;
     border-radius: 15px;
-}
+}}
 
 div[data-testid="stMetric"] label,
 div[data-testid="stMetric"] label *,
 div[data-testid="stMetricValue"],
-div[data-testid="stMetricValue"] * {
-    color: #182230 !important;
-}
+div[data-testid="stMetricValue"] * {{
+    color: var(--rai-text) !important;
+}}
 
-/* ==============================
-   FILE UPLOADER
-============================== */
+/* FILE UPLOADER */
 
-[data-testid="stFileUploader"] {
-    background: #ffffff;
-    color: #182230;
-}
+[data-testid="stFileUploader"] {{
+    background: var(--rai-surface) !important;
+    color: var(--rai-text) !important;
+}}
 
-[data-testid="stFileUploader"] section {
-    background: #ffffff;
-    border-color: #d0d5dd;
-}
+[data-testid="stFileUploader"] section {{
+    background: var(--rai-surface-alt) !important;
+    border: 1px dashed var(--rai-border) !important;
+}}
 
-[data-testid="stFileUploader"] section * {
-    color: #344054 !important;
-}
+[data-testid="stFileUploader"] section *,
+[data-testid="stFileUploader"] small {{
+    color: var(--rai-text) !important;
+}}
 
-[data-testid="stFileUploader"] button {
+[data-testid="stFileUploader"] button {{
+    background: var(--rai-accent) !important;
     color: #ffffff !important;
-}
+}}
 
-/* ==============================
-   TABLES AND DATAFRAMES
-============================== */
+/* TABLES */
 
 [data-testid="stDataFrame"],
-[data-testid="stTable"] {
-    background: #ffffff;
-}
+[data-testid="stTable"] {{
+    background: var(--rai-surface) !important;
+    color: var(--rai-text) !important;
+    border-color: var(--rai-border) !important;
+}}
 
-[data-testid="stDataFrame"] *,
-[data-testid="stTable"] * {
-    color: #182230;
-}
+/* BUTTONS */
 
-/* ==============================
-   BUTTONS
-============================== */
-
-/* Consistent, readable buttons */
 .stButton > button,
-.stDownloadButton > button {
-    background-color: #4f46e5 !important;
+.stDownloadButton > button {{
+    background: var(--rai-accent) !important;
     color: #ffffff !important;
-    border: 1px solid #4f46e5 !important;
+    border: 1px solid var(--rai-accent) !important;
     border-radius: 10px;
     font-weight: 600;
     min-height: 43px;
-}
+}}
 
 .stButton > button *,
-.stDownloadButton > button * {
+.stDownloadButton > button * {{
     color: #ffffff !important;
     -webkit-text-fill-color: #ffffff !important;
-}
+}}
 
 .stButton > button:hover,
-.stDownloadButton > button:hover {
-    background-color: #3730a3 !important;
-    border-color: #3730a3 !important;
-}
+.stDownloadButton > button:hover {{
+    background: var(--rai-accent-hover) !important;
+    border-color: var(--rai-accent-hover) !important;
+}}
 
-/* Improve the file uploader text */
-[data-testid="stFileUploader"] button {
-    background-color: #4f46e5 !important;
-    color: #ffffff !important;
-}
+/* ALERTS */
 
-.stButton > button p,
-.stDownloadButton > button p {
-    color: inherit !important;
-}
-
-/* ==============================
-   ALERTS AND EXPANDERS
-============================== */
-
-[data-testid="stAlert"] p,
-[data-testid="stAlert"] li {
-    color: inherit;
-}
-
-[data-testid="stExpander"] {
-    background: #ffffff;
-    border: 1px solid #e8ebf4;
+[data-testid="stAlert"] {{
     border-radius: 12px;
-}
+}}
+
+/* EXPANDERS */
+
+[data-testid="stExpander"] {{
+    background: var(--rai-surface) !important;
+    border: 1px solid var(--rai-border) !important;
+    border-radius: 12px;
+}}
 
 [data-testid="stExpander"] summary,
-[data-testid="stExpander"] summary p {
-    color: #182230 !important;
-}
+[data-testid="stExpander"] summary p {{
+    color: var(--rai-text) !important;
+}}
 
-/* ==============================
-   FOOTER
-============================== */
+/* RADIO AND CHECKBOX LABELS */
 
-.footer {
+.stApp [data-testid="stRadio"] label,
+.stApp [data-testid="stCheckbox"] label {{
+    color: var(--rai-text) !important;
+}}
+
+/* DIVIDERS */
+
+.stApp hr {{
+    border-color: var(--rai-border) !important;
+}}
+
+/* FOOTER */
+
+.footer {{
     text-align: center;
-    color: #98a2b3 !important;
+    color: var(--rai-muted) !important;
     font-size: 12px;
     padding-top: 35px;
-}
+}}
 </style>
 """, unsafe_allow_html=True)
-
 # --------------------------------------------------
 # LOAD TRAINED MODEL
 # --------------------------------------------------
@@ -372,6 +400,20 @@ model_bundle = load_model()
 with st.sidebar:
     st.markdown("# 🎯 ResumeAI")
     st.caption("SMART RECRUITMENT PLATFORM")
+
+    st.markdown("---")
+
+    st.markdown("### 🎨 Appearance")
+
+    st.radio(
+        "Choose theme",
+        ["Light", "Dark"],
+        key="theme_selector",
+        index=0 if st.session_state["resumeai_theme"] == "Light" else 1,
+        horizontal=True,
+        on_change=change_theme,
+        label_visibility="collapsed"
+    )
 
     st.markdown("---")
 
@@ -1168,52 +1210,238 @@ elif page == "Job Matcher":
 # --------------------------------------------------
 # CANDIDATE COMPARISON
 # --------------------------------------------------
+# --------------------------------------------------
+# CANDIDATE COMPARISON
+# --------------------------------------------------
 
 elif page == "Candidate Comparison":
 
     st.title("⚖️ Candidate Comparison")
-    st.write("Compare two resume texts side by side.")
-
-    candidate1 = st.text_area(
-        "Candidate A — Resume Text",
-        height=230
+    st.write(
+        "Compare two resumes against the same job role "
+        "and required skills."
     )
 
-    candidate2 = st.text_area(
-        "Candidate B — Resume Text",
-        height=230
+    # Job roles and their suggested skills
+    role_skills = {
+        "Data Scientist": [
+            "Python", "SQL", "Machine Learning", "Statistics",
+            "Pandas", "NumPy", "Data Analysis", "Scikit-learn"
+        ],
+        "Software Developer": [
+            "Python", "Java", "C++", "JavaScript",
+            "SQL", "Git", "Data Structures", "Algorithms"
+        ],
+        "Web Developer": [
+            "HTML", "CSS", "JavaScript", "React",
+            "Node.js", "SQL", "Git", "REST API"
+        ],
+        "AI / ML Engineer": [
+            "Python", "Machine Learning", "Deep Learning",
+            "TensorFlow", "PyTorch", "NumPy", "Pandas", "SQL"
+        ],
+        "Business Analyst": [
+            "Excel", "SQL", "Power BI", "Tableau",
+            "Data Analysis", "Communication", "Statistics"
+        ],
+        "Cybersecurity Analyst": [
+            "Networking", "Linux", "Python",
+            "Cybersecurity", "SIEM", "Incident Response"
+        ],
+        "Other": [
+            "Python", "SQL", "Communication",
+            "Problem Solving", "Project Management"
+        ]
+    }
+
+    selected_role = st.selectbox(
+        "Select Job Role",
+        list(role_skills.keys())
     )
+
+    required_skills = st.multiselect(
+        "Select Required Skills",
+        options=sorted({
+            skill
+            for skills in role_skills.values()
+            for skill in skills
+        }),
+        default=role_skills[selected_role],
+        help="Choose the skills you want to compare candidates against."
+    )
+
+    st.divider()
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("👤 Candidate A")
+        candidate1 = st.text_area(
+            "Candidate A — Resume Text",
+            height=230,
+            key="comparison_candidate_a"
+        )
+
+    with col2:
+        st.subheader("👤 Candidate B")
+        candidate2 = st.text_area(
+            "Candidate B — Resume Text",
+            height=230,
+            key="comparison_candidate_b"
+        )
 
     if st.button("Compare Candidates", type="primary"):
+
         if not candidate1.strip() or not candidate2.strip():
             st.error("Please enter resume text for both candidates.")
+
+        elif not required_skills:
+            st.warning("Please select at least one required skill.")
+
         else:
             import re
 
-            def words(text):
-                return set(
-                    re.findall(r"[a-zA-Z][a-zA-Z+#.]{1,}", text.lower())
+            def find_matching_skills(resume_text, skills):
+                """
+                Find selected skills mentioned in resume text.
+                Uses case-insensitive matching and basic word boundaries.
+                """
+                matched = []
+                resume_lower = resume_text.lower()
+
+                for skill in skills:
+                    pattern = (
+                        r"(?<![a-zA-Z0-9])"
+                        + re.escape(skill.lower())
+                        + r"(?![a-zA-Z0-9])"
+                    )
+
+                    if re.search(pattern, resume_lower):
+                        matched.append(skill)
+
+                return matched
+
+            matched_a = find_matching_skills(
+                candidate1, required_skills
+            )
+            matched_b = find_matching_skills(
+                candidate2, required_skills
+            )
+
+            missing_a = [
+                skill for skill in required_skills
+                if skill not in matched_a
+            ]
+
+            missing_b = [
+                skill for skill in required_skills
+                if skill not in matched_b
+            ]
+
+            score_a = (
+                len(matched_a) / len(required_skills)
+            ) * 100
+
+            score_b = (
+                len(matched_b) / len(required_skills)
+            ) * 100
+
+            st.divider()
+            st.subheader("📊 Comparison Results")
+
+            st.caption(
+                f"Selected role: {selected_role} | "
+                f"Required skills: {len(required_skills)}"
+            )
+
+            result_col1, result_col2 = st.columns(2)
+
+            with result_col1:
+                st.subheader("Candidate A")
+
+                st.metric(
+                    "Skill Match",
+                    f"{score_a:.1f}%"
                 )
 
-            words_a = words(candidate1)
-            words_b = words(candidate2)
-            common = words_a & words_b
+                st.progress(score_a / 100)
 
-            col1, col2 = st.columns(2)
+                st.success(
+                    f"Matched skills ({len(matched_a)})"
+                )
 
-            with col1:
-                st.subheader("Candidate A")
-                st.metric("Unique Words", len(words_a))
-                st.metric("Words Shared With B", len(common))
+                if matched_a:
+                    st.write(", ".join(matched_a))
+                else:
+                    st.write("No selected skills detected.")
 
-            with col2:
+                st.warning(
+                    f"Skills not detected ({len(missing_a)})"
+                )
+
+                if missing_a:
+                    st.write(", ".join(missing_a))
+                else:
+                    st.write("All selected skills were detected.")
+
+            with result_col2:
                 st.subheader("Candidate B")
-                st.metric("Unique Words", len(words_b))
-                st.metric("Words Shared With A", len(common))
 
-            st.info(
-                "Word counts are descriptive only. They do not establish "
-                "which candidate is better qualified."
+                st.metric(
+                    "Skill Match",
+                    f"{score_b:.1f}%"
+                )
+
+                st.progress(score_b / 100)
+
+                st.success(
+                    f"Matched skills ({len(matched_b)})"
+                )
+
+                if matched_b:
+                    st.write(", ".join(matched_b))
+                else:
+                    st.write("No selected skills detected.")
+
+                st.warning(
+                    f"Skills not detected ({len(missing_b)})"
+                )
+
+                if missing_b:
+                    st.write(", ".join(missing_b))
+                else:
+                    st.write("All selected skills were detected.")
+
+            st.divider()
+            st.subheader("🏆 Summary")
+
+            if score_a > score_b:
+                st.info(
+                    "Candidate A has a higher detected skill match "
+                    f"for the selected requirements ({score_a:.1f}% "
+                    f"versus {score_b:.1f}%)."
+                )
+
+            elif score_b > score_a:
+                st.info(
+                    "Candidate B has a higher detected skill match "
+                    f"for the selected requirements ({score_b:.1f}% "
+                    f"versus {score_a:.1f}%)."
+                )
+
+            else:
+                st.info(
+                    "Both candidates have the same detected skill "
+                    f"match ({score_a:.1f}%)."
+                )
+
+            st.caption(
+                "Important: This score measures only the selected "
+                "skills detected in the resume text. It is not a "
+                "hiring probability or an overall qualification score. "
+                "A skill may be present but missed because of wording, "
+                "abbreviations, or formatting. Verify the resume "
+                "before making recruitment decisions."
             )
 
 # --------------------------------------------------
