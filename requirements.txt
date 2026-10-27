@@ -1,0 +1,10 @@
+streamlit
+pandas
+scikit-learn
+numpy
+plotly
+pymupdf
+python-docx
+joblib
+matplotlib
+streamlit-option-menu
